@@ -1,0 +1,19 @@
+id: colab-cli
+name: Colab CLI
+kind: service
+what: "When: manage Google Colab sessions/exec as a headless GPU/TPU worker (new/exec/run/stop). Not for Drive mount of weights (use drive-dfs). Does not auto-start G4 or burn CCU."
+homepage: https://github.com/googlecolab/google-colab-cli
+install:
+  docs: https://github.com/googlecolab/google-colab-cli
+  macos: uv tool install google-colab-cli
+  linux: uv tool install google-colab-cli
+login: colab --auth=oauth2 sessions
+bin: colab
+config:
+  - PATH
+deps: []
+checks:
+  installed: command -v colab
+  logged_in: test -s $HOME/.config/colab-cli/token.json
+platforms: [macos, linux]
+notes: Colab OAuth is separate from Drive DFS OAuth. Prefer explicit session lifecycle; do not provision accelerators unless asked. CCU/paywall is account-side (colab usage / colab pay).

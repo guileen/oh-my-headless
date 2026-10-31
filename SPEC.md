@@ -7,7 +7,7 @@ No tool source in this collection.
 | Field | Meaning |
 | --- | --- |
 | `id` | Stable slug |
-| `kind` | `cli` \| `skill` \| `mcp` \| `other` |
+| `kind` | `cli` \| `skill` \| `mcp` \| `service` \| `other` |
 | `what` | One-liner for discovery |
 | `install` | Upstream install (string or `{macos,linux,windows,docs}`) |
 | `bin` or `entry` | Binary / MCP / skill key |

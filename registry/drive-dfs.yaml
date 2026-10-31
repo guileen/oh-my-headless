@@ -1,0 +1,19 @@
+id: drive-dfs
+name: Drive DFS
+kind: service
+what: "When: mount Google Drive inside a Colab runtime for weights/assets/outputs via colab dfs (browser-free after one consent). Not for Colab session/exec (use colab-cli). Not the desktop Drive app."
+homepage: https://github.com/googlecolab/google-colab-cli
+install:
+  docs: https://github.com/googlecolab/google-colab-cli
+  macos: uv tool install google-colab-cli && colab dfs install
+  linux: uv tool install google-colab-cli && colab dfs install
+login: colab dfs consent
+bin: colab
+entry: colab dfs
+deps:
+  - colab-cli
+checks:
+  installed: command -v colab
+  logged_in: test -s $HOME/.config/colab-cli/dfs_credentials.json
+platforms: [macos, linux]
+notes: DFS refresh token is separate from Colab CLI OAuth. Checks only test credential file presence — never read token contents. Mount with colab dfs mount on an existing session when needed.

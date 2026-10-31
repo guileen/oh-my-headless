@@ -3,40 +3,103 @@
   "$id": "https://github.com/guileen/oh-my-headless/registry/_schema.json",
   "title": "oh-my-headless registry entry",
   "type": "object",
-  "required": ["id", "kind", "what", "install"],
+  "required": [
+    "id",
+    "kind",
+    "what",
+    "install"
+  ],
   "properties": {
-    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
-    "name": { "type": "string" },
-    "kind": { "type": "string", "enum": ["cli", "skill", "mcp", "other"] },
-    "what": { "type": "string", "minLength": 8 },
-    "must": { "type": "boolean", "default": false },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "name": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "cli",
+        "skill",
+        "mcp",
+        "other",
+        "service"
+      ]
+    },
+    "what": {
+      "type": "string",
+      "minLength": 8
+    },
+    "must": {
+      "type": "boolean",
+      "default": false
+    },
     "install": {
       "oneOf": [
-        { "type": "string" },
+        {
+          "type": "string"
+        },
         {
           "type": "object",
           "properties": {
-            "macos": { "type": "string" },
-            "linux": { "type": "string" },
-            "windows": { "type": "string" },
-            "docs": { "type": "string", "format": "uri" }
+            "macos": {
+              "type": "string"
+            },
+            "linux": {
+              "type": "string"
+            },
+            "windows": {
+              "type": "string"
+            },
+            "docs": {
+              "type": "string",
+              "format": "uri"
+            }
           },
           "additionalProperties": true
         }
       ]
     },
-    "init": { "type": "string", "description": "Command to initialize after install" },
-    "login": { "type": "string", "description": "Command to authenticate when needed" },
-    "bin": { "type": "string" },
-    "entry": { "type": "string" },
-    "skill": { "type": "string" },
+    "init": {
+      "type": "string",
+      "description": "Command to initialize after install"
+    },
+    "login": {
+      "type": "string",
+      "description": "Command to authenticate when needed"
+    },
+    "bin": {
+      "type": "string"
+    },
+    "entry": {
+      "type": "string"
+    },
+    "skill": {
+      "type": "string"
+    },
     "config": {
       "oneOf": [
-        { "type": "array", "items": { "type": "string" } },
-        { "type": "object", "additionalProperties": { "type": "string" } }
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
       ]
     },
-    "deps": { "type": "array", "items": { "type": "string" } },
+    "deps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "check": {
       "type": "string",
       "description": "Legacy alias for checks.installed"
@@ -44,21 +107,52 @@
     "checks": {
       "type": "object",
       "properties": {
-        "installed": { "type": "string" },
-        "initialized": { "type": "string" },
-        "logged_in": { "type": "string" }
+        "installed": {
+          "type": "string"
+        },
+        "initialized": {
+          "type": "string"
+        },
+        "logged_in": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
     },
-    "homepage": { "type": "string" },
-    "platforms": { "type": "array", "items": { "type": "string" } },
-    "notes": { "type": "string" }
+    "homepage": {
+      "type": "string"
+    },
+    "platforms": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
   },
   "anyOf": [
-    { "required": ["bin"] },
-    { "required": ["entry"] },
-    { "required": ["checks"] },
-    { "required": ["check"] }
+    {
+      "required": [
+        "bin"
+      ]
+    },
+    {
+      "required": [
+        "entry"
+      ]
+    },
+    {
+      "required": [
+        "checks"
+      ]
+    },
+    {
+      "required": [
+        "check"
+      ]
+    }
   ],
   "additionalProperties": false
 }

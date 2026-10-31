@@ -57,8 +57,11 @@ yaml_top() {
     $0 ~ "^"k":[[:space:]]*" && !in_block {
       sub("^[^:]+:[[:space:]]*", "", $0)
       gsub(/[[:space:]]+#.*$/, "", $0)
-      gsub(/^["'\'']|["'\'']$/, "", $0)
       gsub(/^[[:space:]]+|[[:space:]]+$/, "", $0)
+      # strip only wrapping quotes (not quotes inside the value)
+      if ($0 ~ /^".*"$/ || $0 ~ /^'\''.*'\''$/) {
+        $0 = substr($0, 2, length($0)-2)
+      }
       if ($0 != "" && $0 != "|" && $0 != ">") print
       exit
     }
@@ -75,8 +78,11 @@ yaml_check() {
     in_checks && $0 ~ "^[[:space:]]+"k":[[:space:]]*" {
       sub("^[^:]+:[[:space:]]*", "", $0)
       gsub(/[[:space:]]+#.*$/, "", $0)
-      gsub(/^["'\'']|["'\'']$/, "", $0)
       gsub(/^[[:space:]]+|[[:space:]]+$/, "", $0)
+      # strip only wrapping quotes (not quotes inside the value)
+      if ($0 ~ /^".*"$/ || $0 ~ /^'\''.*'\''$/) {
+        $0 = substr($0, 2, length($0)-2)
+      }
       if ($0 != "" && $0 != "|" && $0 != ">") print
       exit
     }
