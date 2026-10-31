@@ -2,5 +2,6 @@
 
 One manifest per tool: `<id>.yaml`. Schema: [`_schema.json`](./_schema.json).
 
-Status comes from `checks.installed` / `initialized` / `logged_in` (see `omh`).  
-Machine-private notes → `../local/` (gitignored). No secrets in tracked files.
+Status: `omh` reads `checks.*`. Machine-private notes → `../local/` (gitignored).
+
+**Web tools (pick one):** `moli` = lean fetch/CDP · `playwright-cli` = codegen/multi-browser scripts · `crawl4ai` (`crwl`) = LLM markdown/extract/deep-crawl.

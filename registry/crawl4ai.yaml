@@ -1,0 +1,19 @@
+id: crawl4ai
+name: Crawl4AI
+kind: cli
+what: "When: turn pages into LLM-ready markdown/JSON, deep-crawl a site, or extract with schema/Q&A (`crwl`). Not for CDP/browser serve (moli) or Playwright codegen/tests (playwright-cli)."
+homepage: https://github.com/unclecode/crawl4ai
+install:
+  docs: https://docs.crawl4ai.com/core/cli/
+  macos: pip install -U crawl4ai
+  linux: pip install -U crawl4ai
+init: crawl4ai-setup
+bin: crwl
+entry: crwl
+config:
+  - PATH
+deps: []
+checks:
+  installed: command -v crwl
+platforms: [macos, linux, windows]
+notes: CLI binary is `crwl`. After pip install run `crawl4ai-setup`. Optional LLM extract/Q&A needs provider config via `crwl` (no secrets in this repo).

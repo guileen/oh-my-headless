@@ -1,11 +1,12 @@
 id: playwright-cli
 name: Playwright CLI
 kind: cli
-what: Official Playwright CLI for browser install, codegen, and scripted automation.
+what: "When: install browsers, codegen, or run Playwright scripts across Chromium/Firefox/WebKit. Not for one-shot page grab (moli) or LLM-ready crawl/markdown (crawl4ai)."
 homepage: https://playwright.dev
 install:
   docs: https://playwright.dev/docs/intro
   macos: npm exec -- playwright --version || npx --yes playwright@latest --version
+  linux: npm exec -- playwright --version || npx --yes playwright@latest --version
 init: playwright install
 bin: playwright
 entry: playwright
@@ -15,4 +16,4 @@ deps: []
 checks:
   installed: playwright --version
 platforms: [macos, linux, windows]
-notes: Browsers are large; set PLAYWRIGHT_BROWSERS_PATH for a shared cache when agents share a host.
+notes: Large browser downloads; set PLAYWRIGHT_BROWSERS_PATH for a shared cache.

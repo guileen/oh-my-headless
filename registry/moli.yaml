@@ -1,7 +1,7 @@
 id: moli
 name: Moli
 kind: cli
-what: Headless Chromium-compatible browser with CDP; fetch/search/screenshot without a GUI.
+what: "When: need a lean headless Chromium for agents (fetch URL, screenshot, eval JS, or CDP) without Playwright. Not for multi-page LLM markdown extract (use crawl4ai) or codegen/tests (use playwright-cli)."
 homepage: https://github.com/lexmount/moli
 install:
   macos: |
@@ -18,4 +18,4 @@ deps: []
 checks:
   installed: moli --version
 platforms: [macos, linux]
-notes: Upstream installer should put `moli` on PATH. CDP often at http://127.0.0.1:9222.
+notes: CDP often at http://127.0.0.1:9222. Prefer over Playwright when you only need fetch/serve/CDP.
