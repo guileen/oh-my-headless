@@ -172,16 +172,15 @@ entry_status_line() {
   printf 'omh:  %-16s %-4s %-5s inst=%-3s init=%-3s login=%-3s  %s\n' \
     "$id" "$must_flag" "${kind:-?}" "$s_inst" "$s_init" "$s_login" "${what:--}"
 
-  # track health via globals
+  # track must failures for closing NEXT
   if [[ "$s_inst" == "no" ]]; then
-    DEGRADED=1
     [[ "$must_flag" == "MUST" ]] && MUST_FAIL=1
     if [[ "$doctor" == "1" ]] || [[ "$must_flag" == "MUST" ]]; then
       next "install $id: see registry/$id.yaml install; then re-run: omh"
     fi
   fi
   if [[ "$s_init" == "no" ]]; then
-    DEGRADED=1
+    [[ "$must_flag" == "MUST" ]] && MUST_FAIL=1
     if [[ -n "$init_cmd" ]]; then
       next "init $id: $init_cmd"
     elif [[ "$doctor" == "1" ]]; then
@@ -189,7 +188,7 @@ entry_status_line() {
     fi
   fi
   if [[ "$s_login" == "no" ]]; then
-    DEGRADED=1
+    [[ "$must_flag" == "MUST" ]] && MUST_FAIL=1
     if [[ -n "$login_cmd" ]]; then
       next "login $id: $login_cmd"
     elif [[ "$doctor" == "1" ]]; then
@@ -200,7 +199,6 @@ entry_status_line() {
 
 do_map_status() {
   local doctor="${1:-0}"
-  DEGRADED=0
   MUST_FAIL=0
   local ver meta_ok=0
   ver="$(omh_version)"
@@ -209,7 +207,6 @@ do_map_status() {
 
   if [[ ! -f "$META/SKILL.md" ]]; then
     log "meta: MISSING skills/omh-meta/SKILL.md"
-    DEGRADED=1
   else
     log "meta: skills/omh-meta present"
   fi
@@ -227,15 +224,12 @@ do_map_status() {
     log "bin: omh on PATH ($(command -v omh))"
   elif [[ -x "$BIN_LINK_DIR/omh" ]]; then
     log "bin: $BIN_LINK_DIR/omh (not on PATH)"
-    DEGRADED=1
     next "Add to PATH: export PATH=\"$BIN_LINK_DIR:\$PATH\""
   else
     log "bin: omh not linked"
-    DEGRADED=1
     next "Install symlink: omh install   (or: $ROOT/bin/omh install)"
   fi
   if [[ "$meta_ok" -eq 0 ]]; then
-    DEGRADED=1
     next "Link meta skill: omh install"
   fi
 
@@ -247,18 +241,12 @@ do_map_status() {
   done
   shopt -u nullglob
 
-  if [[ "$DEGRADED" -eq 0 ]]; then
-    log "health=healthy"
-    next "Discover/use: load omh-meta (runs omh). Refresh: omh update"
-    return 0
-  fi
-  log "health=degraded"
   if [[ "$MUST_FAIL" -eq 1 ]]; then
     next "Fix MUST install/init/login first, then: omh"
-  else
-    next "Repair above, or: omh doctor   |   omh update"
+    return 1
   fi
-  return 1
+  next "Discover/use: load omh-meta (runs omh). Refresh: omh update"
+  return 0
 }
 
 do_update() {
