@@ -1,22 +1,9 @@
 # oh-my-headless
 
 Thin **spec + collection** for headless agent tooling (CLI / skill / MCP / other).  
-Like **oh-my-zsh** or a **Homebrew tap**: conventions + discoverable entries + a meta skill — **not** a dump of tool source code.
+Like **oh-my-zsh** or a **Homebrew tap**: conventions + discoverable registry entries + a meta skill — **not** a dump of tool source code.
 
-> **Author upstream of truth is llmwiki (Google Drive).** This GitHub repo is the open mirror of the public slice only.
-
-## Canonical vs public
-
-| Layer | Where | Role |
-| --- | --- | --- |
-| **Canonical (author)** | This tree under **llmwiki** (Google Drive sync) | Full collection, private/machine notes, daily edits |
-| **Open mirror** | Standalone GitHub repo | Public SPEC, schema, example entries, meta skill, `install.sh` |
-
-**Upstream of truth for the author is llmwiki Drive.** The public repo mirrors only the public slice. See [BOUNDARY.md](./BOUNDARY.md).
-
-Public mirror: [`guileen/oh-my-headless`](https://github.com/guileen/oh-my-headless)
-
-## Minimal layout
+## Layout
 
 ```
 oh-my-headless/
@@ -25,30 +12,32 @@ oh-my-headless/
   SPEC.md
   install.sh
   registry/          # manifests only (no vendored tool code)
-  skills/omh-meta/   # capability discovery / auto-config / usage
-  local/             # private; gitignored — machine paths, install hints
+  skills/omh-meta/   # capability discovery / configure / use
+  local/             # optional machine-local notes (gitignored)
 ```
 
-## Quick install (discovery hooks)
-
-From this directory (or a clone of the public mirror):
+## Install (discovery hooks)
 
 ```sh
+git clone https://github.com/guileen/oh-my-headless.git
+cd oh-my-headless
 ./install.sh
 ```
 
-Hooks discovery symlinks for `~/.agents/skills` (and optionally Codex). Does **not** replace llmwiki skillloaders; meta skill is also symlinked into `~/llmwiki/skills/omh-meta` when that tree exists.
+`install.sh` optionally symlinks the **omh-meta** skill into agent skill-discovery directories you configure (see script / env). It does not install upstream tools and does not vendor binaries.
 
 ## Add a tool
 
-1. Copy a registry stub under `registry/<id>.yaml` (or `.json`).
-2. Fill fields from [SPEC.md](./SPEC.md) — install URL / commands only, no source dump.
-3. Optional: `skills/<id>/SKILL.md` for agent usage.
-4. Run `./install.sh` and the check command from the manifest.
-5. Ask the agent to load **omh-meta** to discover / configure / use.
+1. Add `registry/<id>.yaml` using fields in [SPEC.md](./SPEC.md).
+2. Point `install` at **upstream** docs or installers only — no source dump.
+3. Optionally add `skills/<id>/SKILL.md`.
+4. Run `./install.sh`, then the manifest `check` command.
+5. Load **omh-meta** to discover / configure / use.
 
 ## Not in scope
 
-- Vendoring Playwright, Moli, Crawl4AI, or any tool binary/source
-- Secrets, personal machine absolute paths in the public slice
-- Replacing existing `~/llmwiki/skills/_loaders/*`
+- Vendoring tool binaries or source trees
+- Secrets or personal machine paths in tracked files
+- Replacing a host’s existing skill-loader setup
+
+See [BOUNDARY.md](./BOUNDARY.md).

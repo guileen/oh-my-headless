@@ -18,4 +18,4 @@ skill: null
 deps: []
 check: moli --version
 platforms: [macos, linux]
-notes: Default binary often lands in ~/.local/bin. CDP default http://127.0.0.1:9222.
+notes: Ensure the upstream installer leaves `moli` on PATH. CDP often defaults to http://127.0.0.1:9222.

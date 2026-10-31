@@ -5,7 +5,7 @@ description: Discover, configure, and use headless tools registered in oh-my-hea
 
 # oh-my-headless meta
 
-Collection root: prefer `~/llmwiki/oh-my-headless` when present; else the clone that provided this skill (often `~/miniworks/oh-my-headless`).
+Collection root: `OH_MY_HEADLESS_ROOT` if set, otherwise the directory that contains this skill’s `../../` (the clone or checkout of oh-my-headless).
 
 ## Goals
 
@@ -15,7 +15,7 @@ Collection root: prefer `~/llmwiki/oh-my-headless` when present; else the clone 
 
 ## Workflow
 
-1. Resolve collection root (`OH_MY_HEADLESS_ROOT` if set, else llmwiki path, else skill-relative `../..`).
+1. Resolve collection root as above.
 2. Read `registry/*.yaml` (skip `_schema.json`, `README.md`). Summarize `id`, `kind`, `what`, `check`.
 3. Match the user task to one or more `id`s. Prefer existing installed bins when `check` already passes.
 4. If missing: show the manifest `install` command(s) and ask before running network installs unless the user already authorized install.
@@ -26,13 +26,12 @@ Collection root: prefer `~/llmwiki/oh-my-headless` when present; else the clone 
 ## Rules
 
 - This collection is **spec + manifests**, not a toolkit dump. Do not vendor tool source into the collection.
-- Respect [BOUNDARY.md](../../BOUNDARY.md): no personal paths or secrets in public files.
-- Do not fight llmwiki `skills/_loaders`; omh-meta is an extra discovery skill, usually linked from `~/llmwiki/skills/omh-meta`.
-- When both a loader (e.g. `web-loader`) and a registry entry apply, use the loader’s concrete skill after discovery.
+- Respect [BOUNDARY.md](../../BOUNDARY.md): no secrets or personal paths in tracked files.
+- Do not replace the host’s existing skill-loader conventions; omh-meta is an additive discovery skill.
 
 ## Quick checks
 
 ```bash
-# list public stubs
-ls "${OH_MY_HEADLESS_ROOT:-$HOME/llmwiki/oh-my-headless}/registry"/*.yaml 2>/dev/null
+root="${OH_MY_HEADLESS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
+ls "$root/registry"/*.yaml 2>/dev/null
 ```

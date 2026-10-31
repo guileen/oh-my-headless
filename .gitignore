@@ -1,4 +1,4 @@
-# Private / machine-local (Drive canonical may keep these; public mirror must not)
+# Machine-local (do not commit)
 local/
 .private/
 **/.DS_Store

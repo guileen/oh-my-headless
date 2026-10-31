@@ -36,5 +36,5 @@ Each tool is a **registry entry**, not a fork of the tool. No tool source code i
 ## Anti-patterns
 
 - Copying tool repos into this tree
-- Baking machine-specific paths into public manifests (`/Users/gl/...`)
+- Baking personal absolute paths into tracked manifests
 - Storing API keys in `config` values

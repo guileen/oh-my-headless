@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
-# oh-my-headless — hook discovery symlinks (Codex / omp / .agents)
-# Does not replace ~/llmwiki/skills/_loaders. Idempotent.
+# oh-my-headless — optional skill discovery symlinks. Idempotent.
+# Does not install upstream tools. Does not require any private workspace layout.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 META="$ROOT/skills/omh-meta"
-AGENTS_SKILLS="${OH_MY_HEADLESS_AGENTS_SKILLS:-$HOME/.agents/skills}"
-CODEX_SKILLS="${OH_MY_HEADLESS_CODEX_SKILLS:-$HOME/.codex/skills}"
-LLMWIKI_SKILLS="${OH_MY_HEADLESS_LLMWIKI_SKILLS:-$HOME/llmwiki/skills}"
+
+# Colon-separated skill dirs to receive an omh-meta symlink.
+# Override to match your agent host. Empty entries skipped.
+# Default: create/use $HOME/.agents/skills when unset.
+DEFAULT_SKILL_DIRS="${HOME}/.agents/skills"
+SKILL_DIRS="${OH_MY_HEADLESS_SKILL_DIRS:-$DEFAULT_SKILL_DIRS}"
 
 log() { printf 'omh: %s\n' "$*"; }
 
@@ -37,41 +40,13 @@ main() {
     exit 1
   fi
 
-  # Primary agent discovery root (skillloader convention on this workstation)
-  if [[ -d "$AGENTS_SKILLS" || ! -e "$AGENTS_SKILLS" ]]; then
-    mkdir -p "$AGENTS_SKILLS"
-    link_dir "$META" "$AGENTS_SKILLS/omh-meta"
-  fi
-
-  # Canonical llmwiki skills tree: keep body under oh-my-headless, discover via symlink
-  if [[ -d "$LLMWIKI_SKILLS" ]]; then
-    link_dir "$META" "$LLMWIKI_SKILLS/omh-meta"
-  else
-    log "no $LLMWIKI_SKILLS — skip llmwiki skills symlink"
-  fi
-
-  # Optional Codex skills discovery (same pattern as moli-* links)
-  if [[ -d "$CODEX_SKILLS" ]]; then
-    link_dir "$META" "$CODEX_SKILLS/omh-meta"
-  else
-    log "no $CODEX_SKILLS — skip Codex symlink (create dir later if needed)"
-  fi
-
-  # omp: if ~/.omp exists, document-only unless a skills dir is present
-  if [[ -d "$HOME/.omp" ]]; then
-    local omp_skills=""
-    for cand in "$HOME/.omp/skills" "$HOME/.omp/agent/skills"; do
-      if [[ -d "$cand" ]]; then
-        omp_skills="$cand"
-        break
-      fi
-    done
-    if [[ -n "$omp_skills" ]]; then
-      link_dir "$META" "$omp_skills/omh-meta"
-    else
-      log "omp present; no skills dir found — meta skill still via .agents / llmwiki"
-    fi
-  fi
+  IFS=':' read -r -a dirs <<< "$SKILL_DIRS"
+  local d
+  for d in "${dirs[@]}"; do
+    [[ -z "$d" ]] && continue
+    mkdir -p "$d"
+    link_dir "$META" "$d/omh-meta"
+  done
 
   log "collection root: $ROOT"
   log "registry entries:"
@@ -80,6 +55,7 @@ main() {
     log "  - $(basename "$f" .yaml)"
   done || true
   log "done. Load skill omh-meta for discover/configure/use."
+  log "tip: OH_MY_HEADLESS_SKILL_DIRS='dir1:dir2' ./install.sh"
 }
 
 main "$@"
