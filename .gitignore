@@ -1,0 +1,8 @@
+# Private / machine-local (Drive canonical may keep these; public mirror must not)
+local/
+.private/
+**/.DS_Store
+*.pem
+*.key
+.env
+.env.*

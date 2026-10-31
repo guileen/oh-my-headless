@@ -1,0 +1,21 @@
+id: moli
+name: Moli
+kind: cli
+what: Headless Chromium-compatible browser with CDP; fetch/search/screenshot without a GUI browser app.
+homepage: https://github.com/lexmount/moli
+install:
+  macos: |
+    curl --proto '=https' --tlsv1.2 -fsSL \
+      https://github.com/lexmount/moli/releases/latest/download/moli-installer.sh | sh
+  linux: |
+    curl --proto '=https' --tlsv1.2 -fsSL \
+      https://github.com/lexmount/moli/releases/latest/download/moli-installer.sh | sh
+  docs: https://github.com/lexmount/moli
+bin: moli
+config:
+  - PATH
+skill: null
+deps: []
+check: moli --version
+platforms: [macos, linux]
+notes: Default binary often lands in ~/.local/bin. CDP default http://127.0.0.1:9222.
