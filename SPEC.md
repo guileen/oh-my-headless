@@ -18,6 +18,7 @@ Each tool is a **registry entry**, not a fork of the tool. No tool source code i
 | Field | Type | Meaning |
 | --- | --- | --- |
 | `name` | string | Display name if different from `id` |
+| `must` | bool | If `true`, agents treat as required: install+wire before optional tools |
 | `skill` | string | Path to optional `skills/<id>/SKILL.md` relative to collection root |
 | `config` | string[] \| object | **Names** of env/config keys only — never secret values |
 | `deps` | string[] | Other registry `id`s this entry needs |
@@ -29,9 +30,10 @@ Each tool is a **registry entry**, not a fork of the tool. No tool source code i
 
 1. Add `registry/<id>.yaml` (preferred) or `.json`.
 2. Fill required fields; keep `install` pointing at **upstream** releases.
-3. Optionally add `skills/<id>/SKILL.md` for agent workflow.
-4. `./install.sh` → discovery links; run `check`.
-5. Use meta skill **omh-meta** to discover / configure / attach.
+3. Mark baseline must-haves with `must: true` (e.g. RTK).
+4. Optionally add `skills/<id>/SKILL.md` for agent workflow.
+5. `./install.sh` → discovery links; `./install.sh --status` → healthy/degraded.
+6. Use meta skill **omh-meta** to discover / configure / attach / self-manage.
 
 ## Anti-patterns
 

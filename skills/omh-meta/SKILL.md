@@ -1,37 +1,41 @@
 ---
 name: omh-meta
-description: Discover, configure, and use headless tools registered in oh-my-headless (CLI/skill/MCP). Use when the user asks what headless capabilities exist, how to install or wire one, or which tool fits browser/fetch/automation work—before inventing ad-hoc installs.
+description: oh-my-headless (OMH) meta — load when setting up headless agent tooling, discovering CLI/skill/MCP capabilities, cutting token-heavy shell noise (must-have RTK), or checking/updating OMH itself. Use before ad-hoc installs; treat registry must:true as required.
 ---
 
 # oh-my-headless meta
 
-Collection root: `OH_MY_HEADLESS_ROOT` if set, otherwise the directory that contains this skill’s `../../` (the clone or checkout of oh-my-headless).
+Collection root: `OH_MY_HEADLESS_ROOT` if set, else this skill’s `../..` (the oh-my-headless checkout).
 
-## Goals
+Skill load = follow this when/what. CLI and status lines must be **self-describing**: each failure or next step states the exact command to run.
 
-1. **Discover** — list registry entries and say what each is for.
-2. **Configure** — apply install + config **key names** from the manifest (never invent secrets).
-3. **Use** — point at `bin`/`entry` and optional per-tool `SKILL.md`; run `check`.
+## Hard steps (do in order)
 
-## Workflow
+1. **Resolve root** — `root="${OH_MY_HEADLESS_ROOT:-…}"`. Prefer `./install.sh --status` from root (prints healthy/degraded + next instruction).
+2. **Discover** — read `registry/*.yaml` (skip `_schema.json`, `README.md`). For each entry note `id`, `kind`, `what`, `must`, `check`, `skill`.
+3. **Must-haves first** — every entry with `must: true` is **required** (today: **RTK**). For each: run `check`. If it fails → run upstream `install`, then host `init` from that entry’s skill (e.g. `rtk init -g --codex`), then re-`check`. Do not skip musts for optional tools.
+4. **Optionals** — match the user task to non-must `id`s. Prefer bins whose `check` already passes. If missing: show `install`, ask unless user already authorized; then `check`.
+5. **Attach** — if `skill` is set and the file exists, read it; else use `what` + `homepage`. Config: only key **names** under `config` (never secrets).
+6. **OMH self** — manage the collection, not only tools:
+   - Status: `./install.sh --status` → report `healthy` or `degraded` and follow its next line.
+   - Update (when user wants latest public collection): `./install.sh --update` (git pull of this checkout) then `--status` again.
+   - If omh-meta is not discoverable by the host: `./install.sh` to (re)link skills.
 
-1. Resolve collection root as above.
-2. Read `registry/*.yaml` (skip `_schema.json`, `README.md`). Summarize `id`, `kind`, `what`, `check`.
-3. Match the user task to one or more `id`s. Prefer existing installed bins when `check` already passes.
-4. If missing: show the manifest `install` command(s) and ask before running network installs unless the user already authorized install.
-5. After install, run `check`. Wire discovery with collection `./install.sh` if skills are not visible to the agent host.
-6. If `skill` is set and the file exists, read that SKILL for usage; otherwise use `what` + upstream `homepage`.
-7. For config: only set or request values for keys listed under `config`. Do not write secrets into the registry.
+## CLI contract
+
+- Prefer commands whose output ends with a **next instruction** for the agent.
+- On missing must/tool: print the install/init/`check` lines, not a vague error.
+- Do not invent tools outside the registry.
 
 ## Rules
 
-- This collection is **spec + manifests**, not a toolkit dump. Do not vendor tool source into the collection.
-- Respect [BOUNDARY.md](../../BOUNDARY.md): no secrets or personal paths in tracked files.
-- Do not replace the host’s existing skill-loader conventions; omh-meta is an additive discovery skill.
+- Spec + manifests only — do not vendor tool source.
+- [BOUNDARY.md](../../BOUNDARY.md): no secrets or personal paths in tracked files.
+- Additive to the host skill loader; do not replace it.
 
-## Quick checks
+## Quick
 
 ```bash
 root="${OH_MY_HEADLESS_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
-ls "$root/registry"/*.yaml 2>/dev/null
+cd "$root" && ./install.sh --status
 ```

@@ -1,6 +1,7 @@
 id: rtk
 name: RTK
 kind: cli
+must: true
 what: Compresses shell/CLI output before coding agents read it (token saver); agent hooks rewrite bash through rtk filters.
 homepage: https://github.com/rtk-ai/rtk
 install:
