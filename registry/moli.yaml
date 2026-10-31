@@ -1,7 +1,7 @@
 id: moli
 name: Moli
 kind: cli
-what: Headless Chromium-compatible browser with CDP; fetch/search/screenshot without a GUI browser app.
+what: Headless Chromium-compatible browser with CDP; fetch/search/screenshot without a GUI.
 homepage: https://github.com/lexmount/moli
 install:
   macos: |
@@ -14,8 +14,8 @@ install:
 bin: moli
 config:
   - PATH
-skill: null
 deps: []
-check: moli --version
+checks:
+  installed: moli --version
 platforms: [macos, linux]
-notes: Ensure the upstream installer leaves `moli` on PATH. CDP often defaults to http://127.0.0.1:9222.
+notes: Upstream installer should put `moli` on PATH. CDP often at http://127.0.0.1:9222.

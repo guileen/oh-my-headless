@@ -1,5 +1,6 @@
 # Registry
 
-Manifests for headless tools. **One file per tool** (`<id>.yaml`). Schema: [`_schema.json`](./_schema.json).
+One manifest per tool: `<id>.yaml`. Schema: [`_schema.json`](./_schema.json).
 
-Example entries here are public stubs (install URL + check only). Put machine-private notes under `../local/` (gitignored) — never commit secrets.
+Status comes from `checks.installed` / `initialized` / `logged_in` (see `omh`).  
+Machine-private notes → `../local/` (gitignored). No secrets in tracked files.

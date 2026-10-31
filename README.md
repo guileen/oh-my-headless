@@ -1,43 +1,36 @@
 # oh-my-headless
 
-Thin **spec + collection** for headless agent tooling (CLI / skill / MCP / other).  
-Like **oh-my-zsh** or a **Homebrew tap**: conventions + discoverable registry entries + a meta skill — **not** a dump of tool source code.
+Thin **spec + registry + `omh` CLI** for headless agent tooling (CLI / skill / MCP).  
+Conventions + discoverable manifests — **not** vendored tool source.
 
-## Layout
-
-```
-oh-my-headless/
-  README.md
-  BOUNDARY.md
-  SPEC.md
-  install.sh
-  registry/          # manifests only (no vendored tool code)
-  skills/omh-meta/   # capability discovery / configure / use
-  local/             # optional machine-local notes (gitignored)
-```
-
-## Install (discovery hooks)
+## Quick
 
 ```sh
 git clone https://github.com/guileen/oh-my-headless.git
 cd oh-my-headless
-./install.sh
+./install.sh          # links bin/omh + omh-meta skill
+omh                   # capability map + status
 ```
 
-`install.sh` optionally symlinks the **omh-meta** skill into agent skill-discovery directories you configure (see script / env). It does not install upstream tools and does not vendor binaries.
+Meta skill **omh-meta**: when/what → run `omh`.
+
+## Layout
+
+```
+bin/omh              # map+status | status | update | doctor | install
+registry/*.yaml      # manifests (checks: installed/initialized/logged_in)
+skills/omh-meta/     # → run omh
+skills/<id>/         # optional per-tool skills
+install.sh           # thin → omh install
+SPEC.md BOUNDARY.md
+local/               # gitignored machine notes
+```
 
 ## Add a tool
 
-1. Add `registry/<id>.yaml` using fields in [SPEC.md](./SPEC.md).
-2. Point `install` at **upstream** docs or installers only — no source dump.
-3. Optionally add `skills/<id>/SKILL.md`.
-4. Run `./install.sh`, then the manifest `check` command.
-5. Load **omh-meta** to discover / configure / use.
-
-## Not in scope
-
-- Vendoring tool binaries or source trees
-- Secrets or personal machine paths in tracked files
-- Replacing a host’s existing skill-loader setup
+1. `registry/<id>.yaml` per [SPEC.md](./SPEC.md).
+2. `install` → upstream only. Optional `init` / `login` + `checks.*`.
+3. Optional `skills/<id>/SKILL.md`. Mark baselines `must: true` (RTK).
+4. `omh` to verify.
 
 See [BOUNDARY.md](./BOUNDARY.md).

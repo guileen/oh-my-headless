@@ -1,0 +1,323 @@
+#!/usr/bin/env bash
+# omh — oh-my-headless capability map + status
+# Default: map+status. Subcommands: status | update | doctor | install | help
+set -euo pipefail
+
+# Resolve real checkout even when invoked via ~/.local/bin/omh symlink
+_omh_root() {
+  local src="${BASH_SOURCE[0]}"
+  while [[ -L "$src" ]]; do
+    local dir
+    dir="$(cd "$(dirname "$src")" && pwd)"
+    src="$(readlink "$src")"
+    [[ "$src" != /* ]] && src="$dir/$src"
+  done
+  cd "$(dirname "$src")/.." && pwd
+}
+ROOT="$(_omh_root)"
+META="$ROOT/skills/omh-meta"
+REG="$ROOT/registry"
+CMD="${1:-}"
+DEFAULT_SKILL_DIRS="${HOME}/.agents/skills"
+SKILL_DIRS="${OH_MY_HEADLESS_SKILL_DIRS:-$DEFAULT_SKILL_DIRS}"
+BIN_LINK_DIR="${OH_MY_HEADLESS_BIN_DIR:-$HOME/.local/bin}"
+
+log()  { printf 'omh: %s\n' "$*"; }
+next() { printf 'omh: NEXT: %s\n' "$*"; }
+
+usage() {
+  cat <<'U'
+omh — oh-my-headless
+  omh              capability map + status (default)
+  omh status       same as default
+  omh doctor       deeper diagnostics + suggested fixes
+  omh update       git pull this checkout, then status
+  omh install      link omh into BIN_DIR + omh-meta into skill dirs
+  omh help         this text
+Env: OH_MY_HEADLESS_ROOT, OH_MY_HEADLESS_SKILL_DIRS, OH_MY_HEADLESS_BIN_DIR
+U
+  next "Run: omh   (map+status). Meta skill: load omh-meta → run omh."
+}
+
+omh_version() {
+  if [[ -d "$ROOT/.git" ]] && command -v git >/dev/null 2>&1; then
+    git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo "nogit"
+  else
+    echo "nogit"
+  fi
+}
+
+# Top-level scalar: key: value
+yaml_top() {
+  local file="$1" key="$2"
+  awk -v k="$key" '
+    /^[^[:space:]#]/ && $0 !~ /^---/ {
+      in_block=0
+    }
+    $0 ~ "^"k":[[:space:]]*" && !in_block {
+      sub("^[^:]+:[[:space:]]*", "", $0)
+      gsub(/[[:space:]]+#.*$/, "", $0)
+      gsub(/^["'\'']|["'\'']$/, "", $0)
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", $0)
+      if ($0 != "" && $0 != "|" && $0 != ">") print
+      exit
+    }
+  ' "$file"
+}
+
+# Nested under checks:  installed: / initialized: / logged_in:
+yaml_check() {
+  local file="$1" key="$2"
+  awk -v k="$key" '
+    BEGIN { in_checks=0 }
+    /^checks:[[:space:]]*$/ { in_checks=1; next }
+    /^[^[:space:]#]/ { in_checks=0 }
+    in_checks && $0 ~ "^[[:space:]]+"k":[[:space:]]*" {
+      sub("^[^:]+:[[:space:]]*", "", $0)
+      gsub(/[[:space:]]+#.*$/, "", $0)
+      gsub(/^["'\'']|["'\'']$/, "", $0)
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", $0)
+      if ($0 != "" && $0 != "|" && $0 != ">") print
+      exit
+    }
+  ' "$file"
+}
+
+yaml_must() {
+  local v
+  v="$(yaml_top "$1" must)"
+  [[ "$v" == "true" ]]
+}
+
+run_check() {
+  local check="${1:-}"
+  [[ -z "$check" ]] && return 2
+  bash -c "$check" >/dev/null 2>&1
+}
+
+status_label() {
+  # args: exit of run_check → installed|missing|skip
+  case "$1" in
+    0) echo ok ;;
+    2) echo - ;;
+    *) echo no ;;
+  esac
+}
+
+link_dir() {
+  local target="$1" linkpath="$2"
+  mkdir -p "$(dirname "$linkpath")"
+  if [[ -L "$linkpath" ]]; then
+    local cur; cur="$(readlink "$linkpath")"
+    if [[ "$cur" == "$target" ]]; then
+      log "ok $linkpath"
+      return 0
+    fi
+    rm -f "$linkpath"
+  elif [[ -e "$linkpath" ]]; then
+    log "skip non-symlink $linkpath"
+    return 0
+  fi
+  ln -s "$target" "$linkpath"
+  log "linked $linkpath -> $target"
+}
+
+entry_status_line() {
+  local f="$1" doctor="${2:-0}"
+  local id kind what must_flag
+  local c_inst c_init c_login
+  local s_inst s_init s_login
+  local init_cmd login_cmd install_hint bin_name
+
+  id="$(basename "$f" .yaml)"
+  kind="$(yaml_top "$f" kind)"
+  what="$(yaml_top "$f" what)"
+  must_flag="opt"
+  yaml_must "$f" && must_flag="MUST"
+
+  c_inst="$(yaml_check "$f" installed)"
+  [[ -z "$c_inst" ]] && c_inst="$(yaml_top "$f" check)"
+  c_init="$(yaml_check "$f" initialized)"
+  c_login="$(yaml_check "$f" logged_in)"
+  init_cmd="$(yaml_top "$f" init)"
+  login_cmd="$(yaml_top "$f" login)"
+  bin_name="$(yaml_top "$f" bin)"
+  [[ -z "$bin_name" ]] && bin_name="$(yaml_top "$f" entry)"
+
+  local rc
+  if [[ -n "$c_inst" ]]; then
+    rc=0
+    run_check "$c_inst" || rc=$?
+    s_inst="$(status_label $rc)"
+  else
+    s_inst="-"
+    rc=2
+  fi
+  if [[ -n "$c_init" ]]; then
+    rc_i=0
+    run_check "$c_init" || rc_i=$?
+    s_init="$(status_label $rc_i)"
+  else
+    s_init="-"
+  fi
+  if [[ -n "$c_login" ]]; then
+    rc_l=0
+    run_check "$c_login" || rc_l=$?
+    s_login="$(status_label $rc_l)"
+  else
+    s_login="-"
+  fi
+
+  # compact map line
+  printf 'omh:  %-16s %-4s %-5s inst=%-3s init=%-3s login=%-3s  %s\n' \
+    "$id" "$must_flag" "${kind:-?}" "$s_inst" "$s_init" "$s_login" "${what:--}"
+
+  # track health via globals
+  if [[ "$s_inst" == "no" ]]; then
+    DEGRADED=1
+    [[ "$must_flag" == "MUST" ]] && MUST_FAIL=1
+    if [[ "$doctor" == "1" ]] || [[ "$must_flag" == "MUST" ]]; then
+      next "install $id: see registry/$id.yaml install; then re-run: omh"
+    fi
+  fi
+  if [[ "$s_init" == "no" ]]; then
+    DEGRADED=1
+    if [[ -n "$init_cmd" ]]; then
+      next "init $id: $init_cmd"
+    elif [[ "$doctor" == "1" ]]; then
+      next "init $id: check failed; see registry/$id.yaml"
+    fi
+  fi
+  if [[ "$s_login" == "no" ]]; then
+    DEGRADED=1
+    if [[ -n "$login_cmd" ]]; then
+      next "login $id: $login_cmd"
+    elif [[ "$doctor" == "1" ]]; then
+      next "login $id: check failed; see registry/$id.yaml"
+    fi
+  fi
+}
+
+do_map_status() {
+  local doctor="${1:-0}"
+  DEGRADED=0
+  MUST_FAIL=0
+  local ver meta_ok=0
+  ver="$(omh_version)"
+  log "map collection=$ROOT version=$ver"
+  log "columns: id MUST/opt kind | inst=installed init=initialized login=logged-in | what"
+
+  if [[ ! -f "$META/SKILL.md" ]]; then
+    log "meta: MISSING skills/omh-meta/SKILL.md"
+    DEGRADED=1
+  else
+    log "meta: skills/omh-meta present"
+  fi
+
+  IFS=':' read -r -a dirs <<< "$SKILL_DIRS"
+  local d
+  for d in "${dirs[@]}"; do
+    [[ -z "$d" ]] && continue
+    if [[ -L "$d/omh-meta" ]] || [[ -d "$d/omh-meta" ]]; then
+      log "skill-link: $d/omh-meta"
+      meta_ok=1
+    fi
+  done
+  if command -v omh >/dev/null 2>&1; then
+    log "bin: omh on PATH ($(command -v omh))"
+  elif [[ -x "$BIN_LINK_DIR/omh" ]]; then
+    log "bin: $BIN_LINK_DIR/omh (not on PATH)"
+    DEGRADED=1
+    next "Add to PATH: export PATH=\"$BIN_LINK_DIR:\$PATH\""
+  else
+    log "bin: omh not linked"
+    DEGRADED=1
+    next "Install symlink: omh install   (or: $ROOT/bin/omh install)"
+  fi
+  if [[ "$meta_ok" -eq 0 ]]; then
+    DEGRADED=1
+    next "Link meta skill: omh install"
+  fi
+
+  log "registry:"
+  local f
+  shopt -s nullglob
+  for f in "$REG"/*.yaml; do
+    entry_status_line "$f" "$doctor"
+  done
+  shopt -u nullglob
+
+  if [[ "$DEGRADED" -eq 0 ]]; then
+    log "health=healthy"
+    next "Discover/use: load omh-meta (runs omh). Refresh: omh update"
+    return 0
+  fi
+  log "health=degraded"
+  if [[ "$MUST_FAIL" -eq 1 ]]; then
+    next "Fix MUST install/init/login first, then: omh"
+  else
+    next "Repair above, or: omh doctor   |   omh update"
+  fi
+  return 1
+}
+
+do_update() {
+  if [[ ! -d "$ROOT/.git" ]]; then
+    log "update: no .git — sync/pull your clone, then omh"
+    next "In a git clone: git pull && omh"
+    return 1
+  fi
+  if ! command -v git >/dev/null 2>&1; then
+    log "update: git missing"
+    next "Install git, then: omh update"
+    return 1
+  fi
+  log "update: git -C $ROOT pull --ff-only"
+  if git -C "$ROOT" pull --ff-only; then
+    log "update: ok version=$(omh_version)"
+  else
+    log "update: pull failed"
+    next "Fix git in $ROOT, then omh update"
+    return 1
+  fi
+  do_map_status 0 || true
+}
+
+do_install() {
+  if [[ ! -f "$META/SKILL.md" ]]; then
+    log "missing $META/SKILL.md" >&2
+    next "Restore skills/omh-meta from the oh-my-headless repo"
+    exit 1
+  fi
+  mkdir -p "$BIN_LINK_DIR"
+  link_dir "$ROOT/bin/omh" "$BIN_LINK_DIR/omh"
+  IFS=':' read -r -a dirs <<< "$SKILL_DIRS"
+  local d
+  for d in "${dirs[@]}"; do
+    [[ -z "$d" ]] && continue
+    mkdir -p "$d"
+    link_dir "$META" "$d/omh-meta"
+  done
+  log "collection=$ROOT version=$(omh_version)"
+  next "Ensure $BIN_LINK_DIR is on PATH, then: omh"
+}
+
+# Prefer OH_MY_HEADLESS_ROOT if set and points at a tree with registry
+if [[ -n "${OH_MY_HEADLESS_ROOT:-}" && -d "${OH_MY_HEADLESS_ROOT}/registry" ]]; then
+  ROOT="$(cd "$OH_MY_HEADLESS_ROOT" && pwd)"
+  META="$ROOT/skills/omh-meta"
+  REG="$ROOT/registry"
+fi
+
+case "${CMD:-status}" in
+  ""|status|map) shift || true; do_map_status 0 ;;
+  doctor)        shift || true; do_map_status 1 ;;
+  update)        shift || true; do_update ;;
+  install)       shift || true; do_install ;;
+  help|-h|--help) usage ;;
+  *)
+    log "unknown: $CMD"
+    usage
+    exit 2
+    ;;
+esac
