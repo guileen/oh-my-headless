@@ -3,6 +3,8 @@
 Thin **spec + collection** for headless agent tooling (CLI / skill / MCP / other).  
 Like **oh-my-zsh** or a **Homebrew tap**: conventions + discoverable entries + a meta skill — **not** a dump of tool source code.
 
+> **Author upstream of truth is llmwiki (Google Drive).** This GitHub repo is the open mirror of the public slice only.
+
 ## Canonical vs public
 
 | Layer | Where | Role |
@@ -12,7 +14,7 @@ Like **oh-my-zsh** or a **Homebrew tap**: conventions + discoverable entries + a
 
 **Upstream of truth for the author is llmwiki Drive.** The public repo mirrors only the public slice. See [BOUNDARY.md](./BOUNDARY.md).
 
-Public mirror (placeholder until first push): `https://github.com/guileen/oh-my-headless`
+Public mirror: [`guileen/oh-my-headless`](https://github.com/guileen/oh-my-headless)
 
 ## Minimal layout
 
