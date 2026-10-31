@@ -1,0 +1,20 @@
+id: rtk
+name: RTK
+kind: cli
+what: Compresses shell/CLI output before coding agents read it (token saver); agent hooks rewrite bash through rtk filters.
+homepage: https://github.com/rtk-ai/rtk
+install:
+  macos: brew install rtk-ai/tap/rtk
+  linux: |
+    curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+  windows: winget install rtk-ai.rtk
+  docs: https://www.rtk-ai.app/guide/getting-started/installation
+bin: rtk
+config:
+  - PATH
+  - RTK_DISABLED
+skill: skills/rtk/SKILL.md
+deps: []
+check: rtk --version && rtk gain
+platforms: [macos, linux, windows]
+notes: Another crates.io crate is also named rtk — prove the AI package with `rtk gain`. After install, run `rtk init` for the host agent. Optional rtk-proxy is a separate download.
