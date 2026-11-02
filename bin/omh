@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # omh — oh-my-headless capability map + status
-# Default: map+status. Subcommands: status | update | doctor | install | help
+# Default: map+status. Subcommands: status | update | doctor | install | complexity-audit | help
 set -euo pipefail
 
 # Resolve real checkout even when invoked via ~/.local/bin/omh symlink
@@ -33,6 +33,9 @@ omh — oh-my-headless
   omh doctor       deeper diagnostics + suggested fixes
   omh update       git pull this checkout, then status
   omh install      link omh into BIN_DIR + omh-meta into skill dirs
+  omh complexity-audit
+                   text-file complexity gate (alias: omh audit-complexity)
+                   remaining args pass through to libexec/omh/complexity-audit.sh
   omh help         this text
 Env: OH_MY_HEADLESS_ROOT, OH_MY_HEADLESS_SKILL_DIRS, OH_MY_HEADLESS_BIN_DIR
 U
@@ -239,6 +242,13 @@ do_map_status() {
     next "Link meta skill: omh install"
   fi
 
+  if [[ -f "$ROOT/libexec/omh/complexity-audit.sh" ]]; then
+    log "builtins: complexity-audit (alias audit-complexity) — text-file complexity gate; rules docs/complexity-budget-spec-2026-09-26.md"
+  else
+    log "builtins: MISSING libexec/omh/complexity-audit.sh"
+    next "Restore libexec/omh/complexity-audit.sh from the oh-my-headless repo"
+  fi
+
   log "registry:"
   local f
   shopt -s nullglob
@@ -308,6 +318,15 @@ case "${CMD:-status}" in
   doctor)        shift || true; do_map_status 1 ;;
   update)        shift || true; do_update ;;
   install)       shift || true; do_install ;;
+  complexity-audit|audit-complexity)
+    shift || true
+    script="$ROOT/libexec/omh/complexity-audit.sh"
+    if [[ ! -f "$script" ]]; then
+      log "missing $script" >&2
+      exit 1
+    fi
+    exec "$script" "$@"
+    ;;
   help|-h|--help) usage ;;
   *)
     log "unknown: $CMD"

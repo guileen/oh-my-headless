@@ -12,6 +12,7 @@ omh            # map + status (default)
 omh doctor     # same + fix hints for every failure
 omh update     # pull collection, then status
 omh install    # link `omh` + this skill
+omh complexity-audit   # text complexity gate (alias: omh audit-complexity)
 ```
 
 Resolve collection root: `OH_MY_HEADLESS_ROOT` if set, else the checkout that provides `omh` / this skill (`../..`).
@@ -20,4 +21,4 @@ Resolve collection root: `OH_MY_HEADLESS_ROOT` if set, else the checkout that pr
 
 1. Discover only via `omh` / `registry/*.yaml` — do not invent tools.
 2. `must: true` first (RTK). Follow `NEXT` install/init/login lines.
-3. No vendoring tool source. No secrets or personal paths in tracked files ([BOUNDARY.md](../../BOUNDARY.md)).
+3. No vendoring upstream tool source. No secrets or personal paths in tracked files ([BOUNDARY.md](../../BOUNDARY.md)). `omh complexity-audit` is built-in orchestration under `libexec/omh/`, not a registry id.

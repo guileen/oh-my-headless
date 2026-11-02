@@ -1,6 +1,12 @@
 # SPEC — registry entry (manifest only)
 
-No tool source in this collection.
+Registry entries are manifests only. No upstream tool source in this collection.
+
+Built-in omh orchestration — gates this CLI owns — lives under `libexec/omh/` and is dispatched by `bin/omh`. That is not a registry entry. Do not add a YAML whose install path is a personal absolute path for the same gate.
+
+| Command | Script | Rules |
+| --- | --- | --- |
+| `omh complexity-audit` (alias `omh audit-complexity`) | `libexec/omh/complexity-audit.sh` | `docs/complexity-budget-spec-2026-09-26.md` |
 
 ## Required
 
@@ -34,3 +40,4 @@ No tool source in this collection.
 
 - Vendoring tool repos/binaries  
 - Personal absolute paths or secrets in tracked files  
+- A registry YAML that stands in for an omh-owned gate (`libexec/omh/` instead)  
